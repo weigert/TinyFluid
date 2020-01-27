@@ -54,14 +54,14 @@ namespace PDE{
   void integrate<IE>(double dt, Eigen::VectorXd& val, Eigen::SparseMatrix<double>& mat){
     Eigen::SparseLU<Eigen::SparseMatrix<double>> solver;
     solver.compute(am::sparseIdentity()-dt*mat);
-    val.noalias() = solver.solve(val);
+    val = solver.solve(val);
   }
 
   template<>
   void integrate<IE>(double dt, Eigen::VectorXd& val, Eigen::SparseMatrix<double>& mat, Eigen::VectorXd& source){
     Eigen::SparseLU<Eigen::SparseMatrix<double>> solver;
     solver.compute(am::sparseIdentity()-dt*mat);
-    val.noalias() = solver.solve(val + dt*source);
+    val = solver.solve(val + dt*source);
   }
 
   /* Crank-Nicholson Integrator - Semi Explicit / Implicit */

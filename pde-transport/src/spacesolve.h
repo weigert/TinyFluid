@@ -9,7 +9,7 @@ namespace am{
   }
 
   int index(glm::vec2 pos){
-    return (int)pos.x*SIZE + (int)pos.y;
+    return pos.x*SIZE + pos.y;
   }
 
   int index(int x, int y){
@@ -55,7 +55,7 @@ namespace am{
     Eigen::VectorXd gauss = Eigen::ArrayXd::Zero(SIZE*SIZE);
     for(int i = 0; i < SIZE*SIZE; i++){
       glm::vec2 _pos = pos(i);
-      gauss(i) = exp(-(pow(_pos.x - SIZE/2, 2) + pow(_pos.y - SIZE/2, 2))/SIZE/4);
+      gauss(i) = exp(-(pow(_pos.x - SIZE/2, 2) + pow(_pos.y - SIZE/2, 2))/SIZE);
     }
     return gauss;
   }
@@ -76,8 +76,8 @@ namespace am{
     for(int i = 0; i < SIZE*SIZE; i++){
       //Position of this Element
       glm::ivec2 _pos = pos(i);
-      glm::ivec2 _newposA = (_pos + glm::ivec2(SIZE+back, SIZE+1))%SIZE;
-      glm::ivec2 _newposB = (_pos + glm::ivec2(SIZE+back, SIZE-1))%SIZE;
+      glm::ivec2 _newposA = (_pos + glm::ivec2(back, 1) + SIZE)%SIZE;
+      glm::ivec2 _newposB = (_pos + glm::ivec2(back,-1) + SIZE)%SIZE;
 
       //Add Triplets
       list.push_back(triplet(i, i, 0.5));
@@ -133,6 +133,7 @@ namespace am{
     return M;
   }
 
+  /* High Order Approximation */
   Eigen::SparseMatrix<double> getDiffY(int back){
     //Initialize Sparse Matrix
     Eigen::SparseMatrix<double> M(SIZE*SIZE, SIZE*SIZE);
@@ -152,6 +153,7 @@ namespace am{
     return M;
   }
 
+  /* High Order Approximation */
   Eigen::SparseMatrix<double> gradX(){
     //Initialize Sparse Matrix
     Eigen::SparseMatrix<double> M(SIZE*SIZE, SIZE*SIZE);
@@ -160,18 +162,23 @@ namespace am{
     for(int i = 0; i < SIZE*SIZE; i++){
       //Position of this Element
       glm::ivec2 _pos = pos(i);
-      glm::ivec2 _newposA = (_pos + glm::ivec2( 1, 0))%SIZE;
-      glm::ivec2 _newposB = (_pos + glm::ivec2(-1, 0))%SIZE;
+      glm::ivec2 _newposB2 = (_pos + glm::ivec2(-2, 0) + SIZE)%SIZE;
+      glm::ivec2 _newposB1 = (_pos + glm::ivec2(-1, 0) + SIZE)%SIZE;
+      glm::ivec2 _newposF1 = (_pos + glm::ivec2( 1, 0) + SIZE)%SIZE;
+      glm::ivec2 _newposF2 = (_pos + glm::ivec2( 2, 0) + SIZE)%SIZE;
 
       //Add Triplets
-      list.push_back(triplet(i, index(_newposA),  0.5));
-      list.push_back(triplet(i, index(_newposB), -0.5));
+      list.push_back(triplet(i, index(_newposB2),  1.0/12.0));
+      list.push_back(triplet(i, index(_newposB1), -8.0/12.0));
+      list.push_back(triplet(i, index(_newposF1),  8.0/12.0));
+      list.push_back(triplet(i, index(_newposF2), -1.0/12.0));
     }
     //Construct and Return M
     M.setFromTriplets(list.begin(), list.end());
     return M;
   }
 
+  /* High Order Approximation */
   Eigen::SparseMatrix<double> gradY(){
     //Initialize Sparse Matrix
     Eigen::SparseMatrix<double> M(SIZE*SIZE, SIZE*SIZE);
@@ -180,18 +187,23 @@ namespace am{
     for(int i = 0; i < SIZE*SIZE; i++){
       //Position of this Element
       glm::ivec2 _pos = pos(i);
-      glm::ivec2 _newposA = (_pos + glm::ivec2(0, 1))%SIZE;
-      glm::ivec2 _newposB = (_pos + glm::ivec2(0,-1))%SIZE;
+      glm::ivec2 _newposB2 = (_pos + glm::ivec2( 0,-2) + SIZE)%SIZE;
+      glm::ivec2 _newposB1 = (_pos + glm::ivec2( 0,-1) + SIZE)%SIZE;
+      glm::ivec2 _newposF1 = (_pos + glm::ivec2( 0, 1) + SIZE)%SIZE;
+      glm::ivec2 _newposF2 = (_pos + glm::ivec2( 0, 2) + SIZE)%SIZE;
 
       //Add Triplets
-      list.push_back(triplet(i, index(_newposA),  0.5));
-      list.push_back(triplet(i, index(_newposB), -0.5));
+      list.push_back(triplet(i, index(_newposB2),  1.0/12.0));
+      list.push_back(triplet(i, index(_newposB1), -8.0/12.0));
+      list.push_back(triplet(i, index(_newposF1),  8.0/12.0));
+      list.push_back(triplet(i, index(_newposF2), -1.0/12.0));
     }
     //Construct and Return M
     M.setFromTriplets(list.begin(), list.end());
     return M;
   }
 
+  /* High Order Approximation */
   Eigen::SparseMatrix<double> laplaceX(){
     //Initialize Sparse Matrix
     Eigen::SparseMatrix<double> M(SIZE*SIZE, SIZE*SIZE);
@@ -200,19 +212,24 @@ namespace am{
     for(int i = 0; i < SIZE*SIZE; i++){
       //Position of this Element
       glm::ivec2 _pos = pos(i);
-      glm::ivec2 _newposA = (_pos + glm::ivec2( 1, 0))%SIZE;
-      glm::ivec2 _newposB = (_pos + glm::ivec2(-1, 0))%SIZE;
+      glm::ivec2 _newposB2 = (_pos + glm::ivec2(-2, 0) + SIZE)%SIZE;
+      glm::ivec2 _newposB1 = (_pos + glm::ivec2(-1, 0) + SIZE)%SIZE;
+      glm::ivec2 _newposF1 = (_pos + glm::ivec2( 1, 0) + SIZE)%SIZE;
+      glm::ivec2 _newposF2 = (_pos + glm::ivec2( 2, 0) + SIZE)%SIZE;
 
       //Add Triplets
-      list.push_back(triplet(i, i,  -2.0));
-      list.push_back(triplet(i, index(_newposA), 1.0));
-      list.push_back(triplet(i, index(_newposB), 1.0));
+      list.push_back(triplet(i, index(_newposB2), -1.0/12.0));
+      list.push_back(triplet(i, index(_newposB1), 16.0/12.0));
+      list.push_back(triplet(i, i,  -30.0/12.0));
+      list.push_back(triplet(i, index(_newposF1), 16.0/12.0));
+      list.push_back(triplet(i, index(_newposF2), -1.0/12.0));
     }
     //Construct and Return M
     M.setFromTriplets(list.begin(), list.end());
     return M;
   }
 
+  /* High Order Approximation */
   Eigen::SparseMatrix<double> laplaceY(){
     //Initialize Sparse Matrix
     Eigen::SparseMatrix<double> M(SIZE*SIZE, SIZE*SIZE);
@@ -221,13 +238,17 @@ namespace am{
     for(int i = 0; i < SIZE*SIZE; i++){
       //Position of this Element
       glm::ivec2 _pos = pos(i);
-      glm::ivec2 _newposA = (_pos + glm::ivec2(0, 1))%SIZE;
-      glm::ivec2 _newposB = (_pos + glm::ivec2(0,-1))%SIZE;
+      glm::ivec2 _newposB2 = (_pos + glm::ivec2( 0,-2) + SIZE)%SIZE;
+      glm::ivec2 _newposB1 = (_pos + glm::ivec2( 0,-1) + SIZE)%SIZE;
+      glm::ivec2 _newposF1 = (_pos + glm::ivec2( 0, 1) + SIZE)%SIZE;
+      glm::ivec2 _newposF2 = (_pos + glm::ivec2( 0, 2) + SIZE)%SIZE;
 
       //Add Triplets
-      list.push_back(triplet(i, i,  -2.0));
-      list.push_back(triplet(i, index(_newposA), 1.0));
-      list.push_back(triplet(i, index(_newposB), 1.0));
+      list.push_back(triplet(i, index(_newposB2), -1.0/12.0));
+      list.push_back(triplet(i, index(_newposB1), 16.0/12.0));
+      list.push_back(triplet(i, i,  -30.0/12.0));
+      list.push_back(triplet(i, index(_newposF1), 16.0/12.0));
+      list.push_back(triplet(i, index(_newposF2), -1.0/12.0));
     }
     //Construct and Return M
     M.setFromTriplets(list.begin(), list.end());

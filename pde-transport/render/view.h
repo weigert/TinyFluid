@@ -2,6 +2,7 @@
 #define SCREEN_HEIGHT 500
 
 #include <string>
+#include <SDL2/SDL.h>
 
 //Master Class
 class View {

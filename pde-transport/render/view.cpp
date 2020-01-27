@@ -28,16 +28,20 @@ void View::cleanup(){
 /* Drawing Helpers */
 void View::drawPixel(glm::ivec2 pos, glm::ivec3 color){
 	/* Construct a Rect and Fill with Color at Position */
-  SDL_Rect rect{10*pos.x, 10*pos.y, 10, 10};
+	int ratiox = SCREEN_WIDTH / SIZE;
+	int ratioy = SCREEN_HEIGHT / SIZE;
+  SDL_Rect rect{ratiox*pos.x, ratioy*pos.y, ratiox, ratioy};
   SDL_SetRenderDrawColor(gRenderer, color.x, color.y, color.z, 255);
   SDL_RenderFillRect(gRenderer, &rect);
 }
 
 void View::drawLine(float x, float y, float dx, float dy){
-	float scale = 2.5;
+	int ratiox = SCREEN_WIDTH / SIZE;
+	int ratioy = SCREEN_HEIGHT / SIZE;
+
 	/* I need Direction AND Intensity */
 	SDL_SetRenderDrawColor(gRenderer, 0, 0, 0, 255);
-	SDL_RenderDrawLine(gRenderer, 10*x-dx*scale, 10*y-dy*scale, 10*x+dx*scale, 10*y+dy*scale);
+	SDL_RenderDrawLine(gRenderer, ratiox*(x+0.5-dx), ratioy*(y+0.5-dy), ratiox*(x+0.5+dx), ratioy*(y+0.5+dy));
 }
 
 template<typename F, typename... Args>

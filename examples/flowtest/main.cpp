@@ -1,10 +1,4 @@
 #include <iostream>
-#include <SDL2/SDL.h>
-#include <Eigen/Dense>
-#include <Eigen/Sparse>
-#include<Eigen/SparseLU>
-#include <glm/glm.hpp>
-#include <unistd.h>
 
 #define SIZE 50
 
@@ -40,14 +34,18 @@ int main(int argc, char* argv[]){
     //Drawing Logic
     view.render([&](){
 
+      //Max and Min-Values!
+      double min = field.P.minCoeff();
+      double max = field.P.maxCoeff();
+
       for(int i = 0; i < SIZE*SIZE; i++){
         //Get the element Position
         glm::vec2 _pos = am::pos(i);
 
         //Draw the Color
         //double k = abs(field.vX(i))+abs(field.vY(i));
-        double k = abs(field.P(i));
-        view.drawPixel(_pos, glm::ivec3(0.001*abs(k)));
+        double k = (field.P(i) - min)/(max-min);
+        view.drawPixel(_pos, glm::ivec3(100*k+75));
 
         //Draw the Quiver
         view.drawLine(_pos.x, _pos.y, field.vX(i), field.vY(i));
