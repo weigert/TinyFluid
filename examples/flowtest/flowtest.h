@@ -46,8 +46,8 @@ public:
 void Field::initialize(){
   //Initialize Pressure to some pressures pike in the center...
   P = P0*Eigen::ArrayXd::Ones(SIZE*SIZE);
-  P += 100*am::flatGaussian(glm::vec2(SIZE/2.0, SIZE/2.0), SIZE/2.0);
-  //P += 100*am::flatGaussian(glm::vec2(2.0*SIZE/3.0, SIZE/2.0), SIZE/3.0);
+  P += 100*am::flatGaussian(glm::vec2(SIZE/3.0, SIZE/2.0), SIZE/3.0);
+  P += 100*am::flatGaussian(glm::vec2(2.0*SIZE/3.0, SIZE/2.0), SIZE/3.0);
 
   //Initialize Velocities to Zero
   vX = Eigen::ArrayXd::Zero(SIZE*SIZE);

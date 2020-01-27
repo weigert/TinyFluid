@@ -69,6 +69,6 @@ void View::drawLine(glm::vec2 pos, glm::vec2 dir){
 	int ratioy = SCREEN_HEIGHT / SIZE;
 
 	/* I need Direction AND Intensity */
-	SDL_SetRenderDrawColor(gRenderer, 0, 0, 0, 255);
+	SDL_SetRenderDrawColor(gRenderer, 255, 255, 255, 255);
 	SDL_RenderDrawLine(gRenderer, ratiox*(pos.x+0.5-0.5*dir.x), ratioy*(pos.y+0.5-0.5*dir.y), ratiox*(pos.x+0.5+0.5*dir.x), ratioy*(pos.y+0.5+0.5*dir.y));
 }

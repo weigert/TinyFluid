@@ -48,7 +48,7 @@ int main(int argc, char* argv[]){
         //view.drawPixel(_pos, color::bezier(P, color::sky));
 
         //Velocity Field
-        double V = sqrt(pow(field.vX(i), 2) + pow(field.vY(i), 2))/2;
+        double V = sqrt(pow(field.vX(i), 2) + pow(field.vY(i), 2))/2.5;
         view.drawPixel(_pos, color::bezier(V, color::nebula));
 
         //Draw the Quiver
