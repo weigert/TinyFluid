@@ -1,6 +1,11 @@
 #include "view.h"
 
-/* Setup and Cleanup */
+/*
+================================================================================
+																SETUP / CLEANUP
+================================================================================
+*/
+
 bool View::setup(){
   //Initialize SDL
 	if( SDL_Init( SDL_INIT_VIDEO ) < 0 ) return false;
@@ -25,24 +30,11 @@ void View::cleanup(){
 	SDL_Quit();
 }
 
-/* Drawing Helpers */
-void View::drawPixel(glm::ivec2 pos, glm::ivec3 color){
-	/* Construct a Rect and Fill with Color at Position */
-	int ratiox = SCREEN_WIDTH / SIZE;
-	int ratioy = SCREEN_HEIGHT / SIZE;
-  SDL_Rect rect{ratiox*pos.x, ratioy*pos.y, ratiox, ratioy};
-  SDL_SetRenderDrawColor(gRenderer, color.x, color.y, color.z, 255);
-  SDL_RenderFillRect(gRenderer, &rect);
-}
-
-void View::drawLine(float x, float y, float dx, float dy){
-	int ratiox = SCREEN_WIDTH / SIZE;
-	int ratioy = SCREEN_HEIGHT / SIZE;
-
-	/* I need Direction AND Intensity */
-	SDL_SetRenderDrawColor(gRenderer, 0, 0, 0, 255);
-	SDL_RenderDrawLine(gRenderer, ratiox*(x+0.5-dx), ratioy*(y+0.5-dy), ratiox*(x+0.5+dx), ratioy*(y+0.5+dy));
-}
+/*
+================================================================================
+																RENDER MASTER
+================================================================================
+*/
 
 template<typename F, typename... Args>
 void View::render(F function, Args&&... args){
@@ -55,4 +47,28 @@ void View::render(F function, Args&&... args){
 
 	//Present the Information
 	SDL_RenderPresent(gRenderer);
+}
+
+/*
+================================================================================
+																DRAWING HELPERS
+================================================================================
+*/
+
+void View::drawPixel(glm::ivec2 pos, glm::vec3 color){
+	/* Construct a Rect and Fill with Color at Position */
+	int ratiox = SCREEN_WIDTH / SIZE;
+	int ratioy = SCREEN_HEIGHT / SIZE;
+  SDL_Rect rect{ratiox*pos.x, ratioy*pos.y, ratiox, ratioy};
+  SDL_SetRenderDrawColor(gRenderer, 255*color.x, 255*color.y, 255*color.z, 255);
+  SDL_RenderFillRect(gRenderer, &rect);
+}
+
+void View::drawLine(glm::vec2 pos, glm::vec2 dir){
+	int ratiox = SCREEN_WIDTH / SIZE;
+	int ratioy = SCREEN_HEIGHT / SIZE;
+
+	/* I need Direction AND Intensity */
+	SDL_SetRenderDrawColor(gRenderer, 0, 0, 0, 255);
+	SDL_RenderDrawLine(gRenderer, ratiox*(pos.x+0.5-0.5*dir.x), ratioy*(pos.y+0.5-0.5*dir.y), ratiox*(pos.x+0.5+0.5*dir.x), ratioy*(pos.y+0.5+0.5*dir.y));
 }

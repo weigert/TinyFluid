@@ -1,13 +1,13 @@
 # PDE-Transport
 Finite-Volume based Navier-Stokes and General Transport Equation / Conservation Law Solver
 
-This repository contains the code for solving abritrary transport equations (i.e. differential conservation laws), or PDEs with those terms, using numerical methods.
+This repository contains the code for solving arbitrary transport equations (i.e. differential conservation laws), or PDEs with those terms, using numerical methods.
 
-It provides a simple interface with a number of time-integrators to choose from, as well as different order approximations for various terms.
+It provides a simple interface with a number of time-integrators to choose from, as well as different order approximations for various discretization terms.
 
 You can also choose to include source terms to simply couple your equations.
 
-The system will also solve the Navier-Stokes equations if the underlying flow-field is unknown. It does this using a pressure correction method.
+The system can also solve the Navier-Stokes equations if the underlying flow-field is unknown. It does this using a pressure correction method: the SIMPLEC algorithm. There is an example of the Navier-Stokes being solved in the `/example/` folder.
 
 This uses Eigen in C++ for the linear algebra.
 
@@ -25,6 +25,8 @@ This has been written in library form to make it easy to include the PDE solver 
 
 A rendering helper has been included for practicality, if you wish to write a test program and visualize the information quickly.
 
+Make sure to compile with the `-O3` flag so that Eigen is optimized.
+
 ### Dependencies
 
 - Eigen C++
@@ -35,7 +37,6 @@ A rendering helper has been included for practicality, if you wish to write a te
 - Write a Wiki that contains the necessary information on how this works
 - Make the solver capable of handling variable cell volumes and contact areas
 - Make the solver *theoretically* capable of handling 3D systems of cells
-- 
 
 - Write an example for ocean-current computation
 - Write an example for ground-water flow computation

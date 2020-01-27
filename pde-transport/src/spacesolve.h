@@ -51,11 +51,11 @@ namespace am{
     return I;
   }
 
-  Eigen::VectorXd flatGaussian(){
+  Eigen::VectorXd flatGaussian(glm::vec2 mean, double stddev){
     Eigen::VectorXd gauss = Eigen::ArrayXd::Zero(SIZE*SIZE);
     for(int i = 0; i < SIZE*SIZE; i++){
       glm::vec2 _pos = pos(i);
-      gauss(i) = exp(-(pow(_pos.x - SIZE/2, 2) + pow(_pos.y - SIZE/2, 2))/SIZE);
+      gauss(i) = exp(-(pow(_pos.x - mean.x, 2) + pow(_pos.y - mean.y, 2))/stddev);
     }
     return gauss;
   }
@@ -76,13 +76,15 @@ namespace am{
     for(int i = 0; i < SIZE*SIZE; i++){
       //Position of this Element
       glm::ivec2 _pos = pos(i);
-      glm::ivec2 _newposA = (_pos + glm::ivec2(back, 1) + SIZE)%SIZE;
-      glm::ivec2 _newposB = (_pos + glm::ivec2(back,-1) + SIZE)%SIZE;
+      //glm::ivec2 _newposA = (_pos + glm::ivec2(back, 1) + SIZE)%SIZE;
+      //glm::ivec2 _newposB = (_pos + glm::ivec2(back,-1) + SIZE)%SIZE;
+      glm::ivec2 _newpos = (_pos + glm::ivec2(back, 0) + SIZE)%SIZE;
 
       //Add Triplets
       list.push_back(triplet(i, i, 0.5));
-      list.push_back(triplet(i, index(_newposA), 0.25));
-      list.push_back(triplet(i, index(_newposB), 0.25));
+      list.push_back(triplet(i, index(_newpos), 0.5));
+      //list.push_back(triplet(i, index(_newposA), 0.25));
+      //list.push_back(triplet(i, index(_newposB), 0.25));
     }
 
     //Construct and Return M
@@ -99,13 +101,16 @@ namespace am{
     for(int i = 0; i < SIZE*SIZE; i++){
       //Position of this Element
       glm::ivec2 _pos = pos(i);
-      glm::ivec2 _newposA = (_pos + glm::ivec2(SIZE+1, SIZE+back))%SIZE;
-      glm::ivec2 _newposB = (_pos + glm::ivec2(SIZE-1, SIZE+back))%SIZE;
+      //glm::ivec2 _newposA = (_pos + glm::ivec2(SIZE+1, SIZE+back))%SIZE;
+      //glm::ivec2 _newposB = (_pos + glm::ivec2(SIZE-1, SIZE+back))%SIZE;
+      glm::ivec2 _newpos = (_pos + glm::ivec2(0, back) + SIZE)%SIZE;
 
       //Add Triplets
+      //list.push_back(triplet(i, i, 0.5));
+      //list.push_back(triplet(i, index(_newposA), 0.25));
+      //list.push_back(triplet(i, index(_newposB), 0.25));
       list.push_back(triplet(i, i, 0.5));
-      list.push_back(triplet(i, index(_newposA), 0.25));
-      list.push_back(triplet(i, index(_newposB), 0.25));
+      list.push_back(triplet(i, index(_newpos), 0.5));
     }
 
     //Construct and Return M

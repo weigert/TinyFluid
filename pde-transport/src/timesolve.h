@@ -40,12 +40,12 @@ namespace PDE{
 
   template<>
   void integrate<EE>(double dt, Eigen::VectorXd& val, Eigen::SparseMatrix<double>& mat){
-    val = (am::sparseIdentity()+dt*mat)*val;
+    val.noalias() = (am::sparseIdentity()+dt*mat)*val;
   }
 
   template<>
   void integrate<EE>(double dt, Eigen::VectorXd& val, Eigen::SparseMatrix<double>& mat, Eigen::VectorXd& source){
-    val = (am::sparseIdentity()+dt*mat)*val + dt*source;
+    val.noalias() = (am::sparseIdentity()+dt*mat)*val + dt*source;
   }
 
   /* Implicit Euler Integrator - Fully Implicit */
@@ -54,14 +54,14 @@ namespace PDE{
   void integrate<IE>(double dt, Eigen::VectorXd& val, Eigen::SparseMatrix<double>& mat){
     Eigen::SparseLU<Eigen::SparseMatrix<double>> solver;
     solver.compute(am::sparseIdentity()-dt*mat);
-    val = solver.solve(val);
+    val.noalias() = solver.solve(val);
   }
 
   template<>
   void integrate<IE>(double dt, Eigen::VectorXd& val, Eigen::SparseMatrix<double>& mat, Eigen::VectorXd& source){
     Eigen::SparseLU<Eigen::SparseMatrix<double>> solver;
     solver.compute(am::sparseIdentity()-dt*mat);
-    val = solver.solve(val + dt*source);
+    val.noalias() = solver.solve(val + dt*source);
   }
 
   /* Crank-Nicholson Integrator - Semi Explicit / Implicit */

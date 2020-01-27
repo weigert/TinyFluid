@@ -36,6 +36,7 @@ Pressure correction can converge if we don't underrelax.
 #include <Eigen/Sparse>
 #include <Eigen/SparseLU>
 #include <Eigen/SparseCholesky>
+#include <Eigen/IterativeLinearSolvers>
 #include <glm/glm.hpp>
 
 #include <iostream>
@@ -48,3 +49,5 @@ Pressure correction can converge if we don't underrelax.
 // Rendering Stuff
 #include "render/view.cpp"    //Renderer (Requires SDL)
 #include "render/input.cpp"    //Renderer (Requires SDL)
+
+#include "helpers/timer.h"    //Benchmarking Tool

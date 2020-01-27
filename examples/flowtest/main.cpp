@@ -21,6 +21,10 @@ int main(int argc, char* argv[]){
   /* Initialize topography to some height-map */
   field.initialize();
 
+  //Max and Min-Values! (Initial)
+  //double min = field.P.minCoeff();
+  //double max = field.P.maxCoeff();
+
   /* Render Loop */
   while(!input.quit){
     //Check for Quit
@@ -34,21 +38,21 @@ int main(int argc, char* argv[]){
     //Drawing Logic
     view.render([&](){
 
-      //Max and Min-Values!
-      double min = field.P.minCoeff();
-      double max = field.P.maxCoeff();
-
+      //Do this for all squares!
       for(int i = 0; i < SIZE*SIZE; i++){
         //Get the element Position
         glm::vec2 _pos = am::pos(i);
 
-        //Draw the Color
-        //double k = abs(field.vX(i))+abs(field.vY(i));
-        double k = (field.P(i) - min)/(max-min);
-        view.drawPixel(_pos, glm::ivec3(100*k+75));
+        //Pressure Field (Scaled)
+        //double P = (field.P(i) - min)/(max-min);
+        //view.drawPixel(_pos, color::bezier(P, color::sky));
+
+        //Velocity Field
+        double V = sqrt(pow(field.vX(i), 2) + pow(field.vY(i), 2))/2;
+        view.drawPixel(_pos, color::bezier(V, color::nebula));
 
         //Draw the Quiver
-        view.drawLine(_pos.x, _pos.y, field.vX(i), field.vY(i));
+        view.drawLine(_pos, glm::vec2(field.vX(i), field.vY(i)));
       }
 
 		});

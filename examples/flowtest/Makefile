@@ -2,9 +2,9 @@
 # Climate Simulator
 ################################################################################
 # Parameters
-CC = g++ -std=c++11
-FLAGS = -march=native -Wall -g -rdynamic -o3
-LIBS	= -I/usr/local/include -L/usr/local/lib -lnoise -lSDL2
+CC = g++ -std=c++14
+FLAGS = -march=native -Wall -g -rdynamic -O3
+LIBS	= -I/usr/local/include -L/usr/local/lib -lnoise -lSDL2 -pthread
 
 # Build Targets
 A_SRC = main.cpp
