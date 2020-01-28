@@ -11,24 +11,24 @@ Blog article for this repository and why I made it: [Fluid-Dynamics for Procedur
 
 ## Features
 ### CFD / Numerical Solver
-- Simple, understandable interface for defining and solving a fluid-mechanics problem
-- Fully visible implementation of all algorithms for adaptation / implementation of other solvers
-- Explicit and implicit time-discretization schemes of higher orders, and corresponding support for point-implicit solutions
-- Arbitrary order space-discretization operators using finite differences
-- Arbitrary order space-interpolation operators using lagrange polynomials
-- Support for 1D, 2D and 3D regular orthogonal grids (solution generated using flattened arrays though)
-- Support for arbitrary source terms for coupling equations; some physical equations are given as examples
+    - Simple, understandable interface for defining and solving a fluid-mechanics problem
+    - Fully visible implementation of all algorithms for adaptation / implementation of other solvers
+    - Explicit and implicit time-discretization schemes of higher orders, and corresponding support for point-implicit solutions
+    - Arbitrary order space-discretization operators using finite differences
+    - Arbitrary order space-interpolation operators using lagrange polynomials
+    - Support for 1D, 2D and 3D regular orthogonal grids (solution generated using flattened arrays though)
+    - Support for arbitrary source terms for coupling equations; some physical equations are given as examples
 
 ### Visualizer
-- Simple rendering helper class that creates a window and then interfaces like an HTML canvas for rendering
-- Very bare-bones, easy to understand implementation with SDL2
-- Drawing helper methods let you visualize different data in different ways
-- Arbitrary color-schemes using bezier curve interpolation
+    - Simple rendering helper class that creates a window and then interfaces like an HTML canvas for rendering
+    - Very bare-bones, easy to understand implementation with SDL2
+    - Drawing helper methods let you visualize different data in different ways
+    - Arbitrary color-schemes using bezier curve interpolation
 
 Feel free to steal the renderer for your C++ application if you need quick visualization of 2D information without writing a whole visualization wrapper. Can be included entirely independently.
 
 ### Other
-- Timer helper class for benchmarking arbitrary code / executing code at fixed intervals in a detached thread
+    - Timer helper class for benchmarking arbitrary code / executing code at fixed intervals in a detached thread
 
 ## Examples / Applications
 This library allows you to solve a number of problems and some examples have been included below.
@@ -67,32 +67,32 @@ Note: Make sure to compile with the `-O3` flag so that Eigen is optimized. This 
 ### Dependencies
 
 #### PDE-Transport Core:
-- Eigen C++ (Linear Algebra)
-- GLM (Useful small-vector math) 
+    - Eigen C++ (Linear Algebra)
+    - GLM (Useful small-vector math) 
 
 #### Renderer:
-- SDL2 
+    - SDL2
 
 #### Other
-- Timer Helper: pthread
+    - Timer Helper: pthread
 
 ## To-Do
-- Arbitrary order space FD
-- Arbitrary order space interpolation
-- Simple transporter function for a known flow-field
-- Write a Wiki that contains the necessary information on how this works
-  - Time Integration
-  - Space Discretizations
-  - Boundary and Initial Conditions
-  - Example Problem Closer Explanation
-  - Included Source Terms
-  - Renderer Breakdown
-  - Helpers
-- Make the solver capable of handling variable cell volumes and contact areas
-- Make the solver *theoretically* capable of handling 3D systems of cells
+    - Arbitrary order space FD
+    - Arbitrary order space interpolation
+    - Simple transporter function for a known flow-field
+    - Write a Wiki that contains the necessary information on how this works
+        - Time Integration
+        - Space Discretizations
+        - Boundary and Initial Conditions
+        - Example Problem Closer Explanation
+        - Included Source Terms
+        - Renderer Breakdown
+        - Helpers
+    - Make the solver capable of handling variable cell volumes and contact areas
+    - Make the solver *theoretically* capable of handling 3D systems of cells
 
-- Write an example for ocean-current computation
-- Write an example for ground-water flow computation
+    - Write an example for ocean-current computation
+    - Write an example for ground-water flow computation
 
 ## Sources
 This project was based on information from the book "Computational Methods for Fluid Dynamics" by Ferziger and Peric. Particularly chapter 7 of the latest edition (at the time of writing - January 2020) helped me in implementing the solution of the pressure coupled Navier-Stokes equation.
