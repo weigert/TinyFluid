@@ -11,6 +11,11 @@ Written also to be an understandable implementation of the SIMPLE / SIMPLEC algo
 
 If you have questions or find something unclear, feel free to open an issue.
 
+![Pressure](https://github.com/weigert/ProcFluid/blob/master/screenshots/pressure.png)
+
+*Time-evolution of two gaussian pressure spikes on the central x-axis dissipating and then colliding, forming vortices. Lines indicate direction, color indicates velocity magnitude.*
+
+
 ## Features
 ### CFD / Numerical Solver
     - Simple, understandable interface for defining and solving a fluid-mechanics problem
