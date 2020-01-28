@@ -1,13 +1,15 @@
 # PDE-Transport
-Finite-Volume based Navier-Stokes and General Transport Equation / Conservation Law Solver.
+Finite-Volume based Navier-Stokes and general Transport-Equation / Conservation-Law solver
 
-Written to be an understandable implementation of the SIMPLE / SIMPLEC algorithm in C++, based on the book Computational Methods for Fluid Dynamics by Ferziger and Peric. Also implements the solution of the general transport equations (differential conservation laws / PDEs) for arbitrary sources and sinks, using numerical methods, in a legible manner.
+Originally written to solve fluid-dynamics problems to model physical-phenomena for procedural world generation.
+
+Blog article for this repository and why I made it: [Fluid-Dynamics for Procedural Climate Systems](weigert.vsos.ethz.ch)
 
 The **Wiki** for this project contains more information about the features, implementation, where to find more information on the various subjects, as well as the explanations of a number of example problems solved using this library.
 
-If you have questions or find something unclear, feel free to open an issue.
+Written also to be an understandable implementation of the SIMPLE / SIMPLEC algorithm in C++, based on the book "Computational Methods for Fluid Dynamics" by Ferziger and Peric. Also implements the solution of the general transport equations (differential conservation laws / PDEs) for arbitrary sources and sinks, using numerical methods, in a legible manner.
 
-Blog article for this repository and why I made it: [Fluid-Dynamics for Procedural Climate Systems](weigert.vsos.ethz.ch)
+If you have questions or find something unclear, feel free to open an issue.
 
 ## Features
 ### CFD / Numerical Solver
