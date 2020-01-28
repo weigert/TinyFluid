@@ -46,29 +46,28 @@ public:
 void Field::initialize(){
   //Initialize Pressure to some pressures pike in the center...
   P = P0*Eigen::ArrayXd::Ones(SIZE*SIZE);
-  P += 100*am::flatGaussian(glm::vec2(SIZE/3.0, SIZE/2.0), SIZE/3.0);
-  P += 100*am::flatGaussian(glm::vec2(2.0*SIZE/3.0, SIZE/2.0), SIZE/3.0);
+  P += 100*shape::flatGaussian(glm::vec2(SIZE/2.0, SIZE/2.0), SIZE/2.0);
 
   //Initialize Velocities to Zero
   vX = Eigen::ArrayXd::Zero(SIZE*SIZE);
   vY = Eigen::ArrayXd::Zero(SIZE*SIZE);
 
   //Discrete Differential Operator (Laplace)
-  LAPLACE = am::laplaceX()/dx/dx + am::laplaceY()/dy/dy;
+  LAPLACE = space::CFD(glm::vec2(1, 0), 2)/dx/dx + space::CFD(glm::vec2(0, 1), 2)/dy/dy;
   solver.analyzePattern(LAPLACE);
   solver.setTolerance(0.000001);
 
   //Discrete Differential Operators (of some order)
-  GX = am::gradX()/dx;  //Gradient needs to be divided by the grid-spacing
-  GY = am::gradY()/dy;  //-``-
+  GX = space::CFD(glm::vec2(1, 0), 1)/dx;  //Gradient needs to be divided by the grid-spacing
+  GY = space::CFD(glm::vec2(0, 1), 1)/dy;  //-``-
 
   //Surface Integrators (i.e. convective fluxes over surface)
-  XFLUX = (am::getTrapezeX(1) - am::getTrapezeX(-1))/dx;
-  YFLUX = (am::getTrapezeY(1) - am::getTrapezeY(-1))/dy;
+  XFLUX = space::FV_FLUX(glm::vec2(1, 0))/dx;
+  YFLUX = space::FV_FLUX(glm::vec2(0, 1))/dy;
 
   //Diffusion Operator! (Note: This is in FV Form and Includes the Area / Volume!!!)
-  XDIFFUSION = (am::getDiffX(1)+am::getDiffX(-1))/dx/dx;
-  YDIFFUSION = (am::getDiffY(1)+am::getDiffY(-1))/dy/dy;
+  XDIFFUSION = space::FV_DIFFUSION(glm::vec2(1, 0))/dx/dx;
+  YDIFFUSION = space::FV_DIFFUSION(glm::vec2(0, 1))/dy/dy;
 }
 
 void Field::timestep(){
@@ -76,8 +75,8 @@ void Field::timestep(){
   /* SIMPLEC ALGORITHM */
 
   //Construct Non-Linear Operator from Velocity Field and Other Contributions
-  Eigen::SparseMatrix<double> vX_MAT = am::sparseDiagonalize(vX);
-  Eigen::SparseMatrix<double> vY_MAT = am::sparseDiagonalize(vY);
+  Eigen::SparseMatrix<double> vX_MAT = alg::sparseDiagonalize(vX);
+  Eigen::SparseMatrix<double> vY_MAT = alg::sparseDiagonalize(vY);
 
   //Implicit and Explicitly Evaluated Operators... (Here: Crank-Nicholson)
   Eigen::SparseMatrix<double> E_MAT_X = -vX_MAT*XFLUX + viscosity*XDIFFUSION;
@@ -92,16 +91,16 @@ void Field::timestep(){
   Eigen::VectorXd E = Eigen::ArrayXd::Ones(SIZE*SIZE);
 
   //All Elements! (Summed for Each Individual Guy)
-  Eigen::VectorXd A_X = ((am::sparseIdentity()-dt*I_MAT_X)*E);
-  Eigen::VectorXd A_Y = ((am::sparseIdentity()-dt*I_MAT_Y)*E);
+  Eigen::VectorXd A_X = ((alg::sparseIdentity()-dt*I_MAT_X)*E);
+  Eigen::VectorXd A_Y = ((alg::sparseIdentity()-dt*I_MAT_Y)*E);
 
   //All Elements!
   Eigen::VectorXd UA_X = E.cwiseQuotient(A_X);
   Eigen::VectorXd UA_Y = E.cwiseQuotient(A_Y);
 
   //Refactorize the Solver Matrix
-  //solver.factorize(am::sparseDiagonalize(UA_X)*am::laplaceX()/dx/dx + am::sparseDiagonalize(UA_Y)*am::laplaceY()/dy/dy); //2D Laplace Operator
-  solver.factorize(GX*am::sparseDiagonalize(UA_X)*GX + GY*am::sparseDiagonalize(UA_Y)*GY); //2D Laplace Operator
+  //solver.factorize(alg::sparseDiagonalize(UA_X)*space::laplaceX()/dx/dx + alg::sparseDiagonalize(UA_Y)*space::laplaceY()/dy/dy); //2D Laplace Operator
+  solver.factorize(GX*alg::sparseDiagonalize(UA_X)*GX + GY*alg::sparseDiagonalize(UA_Y)*GY); //2D Laplace Operator
 
   Eigen::VectorXd P_SOURCE_X;
   Eigen::VectorXd P_SOURCE_Y;

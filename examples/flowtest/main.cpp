@@ -2,7 +2,7 @@
 
 #define SIZE 50
 
-#include "../../pde-transport/pde-transport.h"
+#include "../../procfluid/procfluid.h"
 #include "flowtest.h"
 
 int main(int argc, char* argv[]){
@@ -41,7 +41,7 @@ int main(int argc, char* argv[]){
       //Do this for all squares!
       for(int i = 0; i < SIZE*SIZE; i++){
         //Get the element Position
-        glm::vec2 _pos = am::pos(i);
+        glm::vec2 _pos = alg::pos(i);
 
         //Pressure Field (Scaled)
         //double P = (field.P(i) - min)/(max-min);

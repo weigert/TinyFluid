@@ -50,7 +50,7 @@ Coupling the two equations using physical source terms (i.e. raoults law for wat
 ### Ocean Current Simulation
 
 ## Usage
-To include the numerical solver in your own program, copy the folder pde-transport to your program and include the main file `pde-transport.h`. Then you have access to the methods.
+To include the numerical solver in your own program, copy the folder `procfluid` to your program and include the main file `procfluid.h`. Then you have access to the methods.
 
 See the individual examples (e.g. the base example) for information on how to use the renderer, as well as how to construct and then solve a fluid-mechanics problem.
 
@@ -61,16 +61,16 @@ Compiled using gcc C++14 on Ubuntu 18 LTS
 Use the make file included to compile the examples:
 
     sudo make all
-    
+
 Make sure to properly link the dependencies listed below to compile your own program. See makefile for examples.
 
 Note: Make sure to compile with the `-O3` flag so that Eigen is optimized. This will make it run orders of magnitude faster.
 
 ### Dependencies
 
-#### PDE-Transport Core:
+#### ProcFluid Core:
     - Eigen C++ (Linear Algebra)
-    - GLM (Useful small-vector math) 
+    - GLM (Useful small-vector math)
 
 #### Renderer:
     - SDL2
@@ -99,9 +99,9 @@ Note: Make sure to compile with the `-O3` flag so that Eigen is optimized. This 
 ## Sources
 This project was based on information from the book "Computational Methods for Fluid Dynamics" by Ferziger and Peric. Particularly chapter 7 of the latest edition (at the time of writing - January 2020) helped me in implementing the solution of the pressure coupled Navier-Stokes equation.
 
-The code is still written 100% from scratch, as I found the Fortran77 implementation referenced in the book absolutely unintelligible. 
+The code is still written 100% from scratch, as I found the Fortran77 implementation referenced in the book absolutely unintelligible.
 
-A big thank you to Dr. Daniel Meyer-Massetti for his excellent course "Numerical Methods for Transport Phenomena" at ETH Zurich that first introduced me to numerical methods for solving PDEs. The content of that course was the strong foundation that even let me know how to begin to create this repository. 
+A big thank you to Dr. Daniel Meyer-Massetti for his excellent course "Numerical Methods for Transport Phenomena" at ETH Zurich that first introduced me to numerical methods for solving PDEs. The content of that course was the strong foundation that even let me know how to begin to create this repository.
 
 ## License
 All source code is licensed under the MIT License.
