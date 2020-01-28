@@ -66,6 +66,58 @@ namespace am{
     They should be rewritten in general form for arbitrary dimension (not too hard)
   */
 
+  /*
+    Two Types of Operators:
+      -> Interpolators
+      -> Finite Differences
+
+    Then all subsequent operators are simply combinations of the two.
+  */
+
+  /*
+    Lagrange Interpolator:
+
+    What is the value at a specific point, given that we know the surrounding points?
+
+    I know two surround points -> Compute the linear interpolation polynomial
+
+    Then express the value at our specific point as the weighted sum.
+
+    These weights are the entry in our matrix.
+  */
+
+  std::vector<double> lagrange(std::initializer_list<int> shift){
+    std::vector<double> weights;
+
+    /* This is equivalent to a matrix inversion problem. */
+
+    return weights;
+  }
+
+  /*
+
+    Finite Difference Approximator:
+
+    Define an arbitrary order of derivation, and an arbitrary number of point offsets.
+
+    Then return the matrix that will give that approximation.
+
+    Construct the Taylor Matrix and Invert it (or use some formula!!)
+
+  */
+
+  Eigen::SparseMatrix<double> FD(std::initializer_list<int> points, int order){
+    Eigen::SparseMatrix<double> M(SIZE*SIZE, SIZE*SIZE);
+    return M;
+  }
+
+  //All other Matrices are Derived from the FD Method and the Lagrange Interpolator.
+  //Then, you can add a lagrange surface interpolator.
+  //Then, you can add multidimensional Finite Differences.
+
+
+  //Derived Functions
+
   //Mid-Point Calculation Matrix (For Surface Integrals)
   Eigen::SparseMatrix<double> getTrapezeX(int back){
     //Initialize Sparse Matrix
