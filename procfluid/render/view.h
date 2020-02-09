@@ -1,5 +1,5 @@
-#define SCREEN_WIDTH 800
-#define SCREEN_HEIGHT 800
+#define SCREEN_WIDTH 1000
+#define SCREEN_HEIGHT 1000
 
 #include <string>
 #include <SDL2/SDL.h>
@@ -13,7 +13,6 @@ Simple SDL Wrapper that acts like a canvas which you can draw stuff onto.
 Drawing Helpers let you define the drawing behavior.
 
 The render wrapper lets you plug in a lambda of drawing helpers for rendering.
-
 */
 
 
@@ -31,7 +30,7 @@ class View {
    void cleanup();
 
    //Drawing Helpers
-   void drawPixel(glm::ivec2 pos, glm::vec3 color);
+   void drawPixel(glm::ivec2 pos, glm::vec3 color, double opacity);
    void drawLine(glm::vec2 pos, glm::vec2 dir);
 
    //Renderer

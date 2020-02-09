@@ -11,47 +11,82 @@ namespace PDE{
 
   //Full-NS-Solver
   template<Solver S>
-  void solveNavierStokes(double dt, Eigen::VectorXd& vX, Eigen::VectorXd& vY){
+  void solveNavierStokes(Eigen::VectorXd& vX, Eigen::VectorXd& vY, Eigen::VectorXd& P, Eigen::SparseMatrix<double> B, Eigen::SparseMatrix<double> GXF,  Eigen::SparseMatrix<double> GXB,  Eigen::SparseMatrix<double> GYF,  Eigen::SparseMatrix<double> GYB, double tol, int maxiter, double relaxP, double relaxV){
     std::cout<<"Please specifiy a valid solution method."<<std::endl;
   }
 
-  //Full Transport Solver
-  template<Solver S>
-  void solveTransport(double dt, Eigen::VectorXd& val, Eigen::VectorXd& vX, Eigen::VectorXd& vY, Eigen::VectorXd& source){
-    std::cout<<"Please specifiy a valid solution method."<<std::endl;
-  }
+  Eigen::BiCGSTAB<Eigen::SparseMatrix<double>> solver;
 
   template<> //Naive Solution (Strange Pressure Behavior)
-  void solveNavierStokes<SIMPLEC>(double dt, Eigen::VectorXd& vX, Eigen::VectorXd& vY){
-    return;
+  void solveNavierStokes<SIMPLEC>(Eigen::VectorXd& vX, Eigen::VectorXd& vY, Eigen::VectorXd& P, Eigen::SparseMatrix<double> B, Eigen::SparseMatrix<double> GXF,  Eigen::SparseMatrix<double> GXB,  Eigen::SparseMatrix<double> GYF,  Eigen::SparseMatrix<double> GYB, double tol, int maxiter, double relaxP, double relaxV){
+    solver.compute(GXF*GXB + GYF*GYB);
+    solver.setTolerance(0.000001);
+
+
+    //
+    Eigen::VectorXd dP;
+    Eigen::VectorXd dvX;
+    Eigen::VectorXd dvY;
+
+    double newerr = 1.0;
+    bool divergence = false;
+    while(newerr > tol && !divergence && maxiter){
+      //Pressure Correction
+
+      dP = solver.solve(GXB*vX + GYB*vY);
+
+      // We compute the velocity correction based on the pressure correction
+
+      dvX = -(GXF*dP);
+      dvY = -(GYF*dP);
+
+      // We correct our velocity guesses from the intermediary field
+
+      vX += relaxV*B*dvX;
+      vY += relaxV*B*dvY;
+      P += relaxP*B*dP;
+
+      // Compute the Error (Divergence of Field) simply using our guess.
+      newerr = (GXB*vX + GYB*vY).squaredNorm()/(SIZE*SIZE);
+      maxiter--;
+
+      //std::cout<<newerr<<std::endl;
+      if(newerr > 1E+5) divergence = true;
+    }
+
+    //Error Handling
+    if(!maxiter) std::cout<<"Max iterations surpassed."<<std::endl;
+    if(divergence) std::cout<<"Instability encountered."<<std::endl;
   };
 
-  /* Simple Transport Integrator! */
-  template<>
-  void solveTransport<TRANSPORT>(double dt, Eigen::VectorXd& val, Eigen::VectorXd& vX, Eigen::VectorXd& vY, Eigen::VectorXd& source){
+  /*
+    Transport Equation Integrator:
 
-    /*
-    Get the appropriate transport operators...
-    Then include the source term.
+      Define your own parameter set...
 
-    We include the velocity field!
+  */
 
-    And the area is important too actually.
+  void solveTransport(double dt, double dx, double dy, Eigen::VectorXd& val, Eigen::VectorXd& vX, Eigen::VectorXd& vY){
+    double diffusivity = 0.001;
 
-    //DIFFUSION OPERATOR
-    G = viscosity*((dY_f+dY_b)/dy/dy + (dX_f+dX_b)/dx/dx);
+    //Velocity Matrices
+    Eigen::SparseMatrix<double> vX_MAT = alg::sparseDiagonalize(vX);
+    Eigen::SparseMatrix<double> vY_MAT = alg::sparseDiagonalize(vY);
 
-    //Convection Operator!
-    J = -vY_MAT*((fY_f-fY_b)/dy)-vX_MAT*((fX_f-fX_b)/dx);
+    Eigen::SparseMatrix<double> XFLUX = space::FV_FLUX(glm::vec2(1, 0))/dx;
+    Eigen::SparseMatrix<double> YFLUX = space::FV_FLUX(glm::vec2(0, 1))/dy;
 
-    //Full Operator
-    MAT = J+G;
+    Eigen::SparseMatrix<double> XDIFFUSION = space::FV_DIFFUSION(glm::vec2(1, 0))/dx/dx;
+    Eigen::SparseMatrix<double> YDIFFUSION = space::FV_DIFFUSION(glm::vec2(0, 1))/dy/dy;
 
-    //PDE::integrate<PDE::EE>(0.0005, heightMap, MAT);
-    //PDE::integrate<PDE::IE>(0.01, heightMap, MAT);
-    PDE::integrate<PDE::CN>(0.01, heightMap, MAT);
-    */
+    //Get our Operators
+    Eigen::SparseMatrix<double> CONVECTION = -vX_MAT*XFLUX - vY_MAT*YFLUX;
+    Eigen::SparseMatrix<double> DIFFUSION = diffusivity*(XDIFFUSION + YDIFFUSION);
 
-    return;
+    //Full Matrix Operator...
+    Eigen::SparseMatrix<double> MAT = CONVECTION + DIFFUSION;
+
+    //Integrate!
+    PDE::integrate<PDE::CN>(dt, val, MAT);
   }
 };

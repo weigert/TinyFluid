@@ -7,5 +7,8 @@ void Input::handle(){
     if(event.key.keysym.sym == SDLK_p){
       paused = !paused;
     }
+    else if(event.key.keysym.sym == SDLK_t){
+      trigger = true;
+    }
   }
 }

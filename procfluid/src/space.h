@@ -136,6 +136,13 @@ Eigen::SparseMatrix<double> OP(std::initializer_list<double> _p, std::vector<dou
 
 /*
 ================================================================================
+                        BOUNDARY CONDITION HELPER
+================================================================================
+*/
+
+
+/*
+================================================================================
                       EXAMPLE OPERATORS FOR CONVENIENCE
 ================================================================================
 */
@@ -162,6 +169,24 @@ Eigen::SparseMatrix<double> FV_DIFFUSION(glm::vec2 dim){
 Eigen::SparseMatrix<double> CFD(glm::vec2 dim, int n){
   std::vector<double> w = FD({-2, -1, 0, 1, 2}, n);
   return OP({-2, -1, 0, 1, 2}, w, dim);
+}
+
+//Forward Finite Differences
+Eigen::SparseMatrix<double> FFD(glm::vec2 dim, int n){
+  std::vector<double> w = FD({0, 1}, n);
+  return OP({0, 1}, w, dim);
+}
+
+//Forward Finite Differences
+Eigen::SparseMatrix<double> BFD(glm::vec2 dim, int n){
+  std::vector<double> w = FD({0, 1}, n);
+  return OP({-1, 0}, w, dim);
+}
+
+//Forward Finite Differences
+Eigen::SparseMatrix<double> SFD(glm::vec2 dim, int n){
+  std::vector<double> w = FD({-1, 0, 1}, n);
+  return OP({-1, 0, 1}, w, dim);
 }
 
 }; //End of Namespace

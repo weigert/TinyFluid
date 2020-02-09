@@ -40,12 +40,12 @@ namespace PDE{
 
   template<>
   void integrate<EE>(double dt, Eigen::VectorXd& val, Eigen::SparseMatrix<double>& mat){
-    val.noalias() = (alg::sparseIdentity()+dt*mat)*val;
+    val = (alg::sparseIdentity()+dt*mat)*val;
   }
 
   template<>
   void integrate<EE>(double dt, Eigen::VectorXd& val, Eigen::SparseMatrix<double>& mat, Eigen::VectorXd& source){
-    val.noalias() = (alg::sparseIdentity()+dt*mat)*val + dt*source;
+    val = (alg::sparseIdentity()+dt*mat)*val + dt*source;
   }
 
   /* Implicit Euler Integrator - Fully Implicit */

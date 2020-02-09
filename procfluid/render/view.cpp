@@ -55,12 +55,12 @@ void View::render(F function, Args&&... args){
 ================================================================================
 */
 
-void View::drawPixel(glm::ivec2 pos, glm::vec3 color){
+void View::drawPixel(glm::ivec2 pos, glm::vec3 color, double opacity){
 	/* Construct a Rect and Fill with Color at Position */
 	int ratiox = SCREEN_WIDTH / SIZE;
 	int ratioy = SCREEN_HEIGHT / SIZE;
   SDL_Rect rect{ratiox*pos.x, ratioy*pos.y, ratiox, ratioy};
-  SDL_SetRenderDrawColor(gRenderer, 255*color.x, 255*color.y, 255*color.z, 255);
+  SDL_SetRenderDrawColor(gRenderer, 255*color.x, 255*color.y, 255*color.z, 255*opacity);
   SDL_RenderFillRect(gRenderer, &rect);
 }
 

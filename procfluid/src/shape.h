@@ -22,4 +22,14 @@ namespace shape{
     }
     return gauss;
   }
+
+  Eigen::VectorXd circle(glm::vec2 center, double rad){
+    Eigen::VectorXd circ = Eigen::ArrayXd::Ones(SIZE*SIZE);
+    for(int i = 0; i < SIZE*SIZE; i++){
+      glm::vec2 _pos = alg::pos(i);
+      if(sqrt(pow(_pos.x-center.x, 2) + pow(_pos.y-center.y, 2)) < rad)
+        circ(i) = 0.0;
+    }
+    return circ;
+  }
 };
