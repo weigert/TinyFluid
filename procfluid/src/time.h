@@ -13,6 +13,8 @@ namespace PDE{
     PI  //Point-Implicit
   };
 
+  Eigen::BiCGSTAB<Eigen::SparseMatrix<double>> solver;
+
   /* Pure Implicit / Explicit / Defined Mixture */
   template<Integrator I>
   void integrate(double dt, Eigen::VectorXd& val, Eigen::SparseMatrix<double>& mat){
@@ -52,14 +54,12 @@ namespace PDE{
 
   template<>
   void integrate<IE>(double dt, Eigen::VectorXd& val, Eigen::SparseMatrix<double>& mat){
-    Eigen::SparseLU<Eigen::SparseMatrix<double>> solver;
     solver.compute(alg::sparseIdentity()-dt*mat);
     val.noalias() = solver.solve(val);
   }
 
   template<>
   void integrate<IE>(double dt, Eigen::VectorXd& val, Eigen::SparseMatrix<double>& mat, Eigen::VectorXd& source){
-    Eigen::SparseLU<Eigen::SparseMatrix<double>> solver;
     solver.compute(alg::sparseIdentity()-dt*mat);
     val.noalias() = solver.solve(val + dt*source);
   }

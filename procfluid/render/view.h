@@ -31,6 +31,7 @@ class View {
 
    //Drawing Helpers
    void drawPixel(glm::ivec2 pos, glm::vec3 color, double opacity);
+   void drawPixel(glm::ivec2 pos, glm::vec3 color, double opacity, int _SIZE);
    void drawLine(glm::vec2 pos, glm::vec2 dir);
 
    //Renderer

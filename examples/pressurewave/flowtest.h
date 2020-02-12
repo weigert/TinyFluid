@@ -8,7 +8,7 @@ public:
   double dt = 0.0005;
 
   //Parameters
-  double viscosity = 0.000148;  //[m^2/s]  //Future: Replace with Temperature Dependent?
+  double viscosity = 0.003;  //[m^2/s]  //Future: Replace with Temperature Dependent?
   double density = 1.225;       //[kg/m^3]Future: Replace with Temperature Dependent?
   double P0 = 1E+5;             //Initial Pressure [Pa]
 
@@ -54,8 +54,8 @@ void Field::initialize(){
   //P += 100*shape::flatGaussian(glm::vec2(SIZE/2.0, SIZE/2.0), SIZE/2.0);
 
   //Double Pressure Wave
-  P += 100*shape::flatGaussian(glm::vec2(SIZE/3.0, SIZE/2.0), SIZE/3.0);
-  P += 100*shape::flatGaussian(glm::vec2(2.0*SIZE/3.0, SIZE/2.0), SIZE/3.0);
+  P += 100*shape::flatGaussian(glm::vec2(SIZE/2.0, SIZE/2.0), SIZE/3.0);
+  //P += 100*shape::flatGaussian(glm::vec2(2.0*SIZE/3.0, SIZE/2.0), SIZE/3.0);
 
   //Initialize Velocities to Zero
   vX = Eigen::ArrayXd::Zero(SIZE*SIZE);
@@ -84,6 +84,8 @@ void Field::initialize(){
 
 void Field::timestep(){
 
+  Eigen::VectorXd E = Eigen::ArrayXd::Ones(SIZE*SIZE);
+
   /* SIMPLEC ALGORITHM
     -> Purely Explicit Here...
   */
@@ -98,15 +100,24 @@ void Field::timestep(){
   Eigen::SparseMatrix<double> vX_MAT = alg::sparseDiagonalize(vX);
   Eigen::SparseMatrix<double> vY_MAT = alg::sparseDiagonalize(vY);
   Eigen::SparseMatrix<double> E_MAT = -vX_MAT*XFLUX - vY_MAT*YFLUX + viscosity*(XDIFFUSION + YDIFFUSION);
+  E_MAT = B_MAT*E_MAT;
 
-  Eigen::VectorXd P_SOURCE_X;
-  Eigen::VectorXd P_SOURCE_Y;
-  P_SOURCE_X = g.x*Eigen::ArrayXd::Ones(SIZE*SIZE);
-  P_SOURCE_Y = g.y*Eigen::ArrayXd::Ones(SIZE*SIZE);
-  P_SOURCE_X += -XFLUX*P;
-  P_SOURCE_Y += -YFLUX*P;
-  vX = vX + dt*B_MAT*(E_MAT*vX + P_SOURCE_X);
-  vY = vY + dt*B_MAT*(E_MAT*vY + P_SOURCE_Y);
+  Eigen::VectorXd P_SOURCE_X = g.x*E - XFLUX*P;
+  Eigen::VectorXd P_SOURCE_Y = g.y*E - YFLUX*P;
+  P_SOURCE_X = B_MAT*P_SOURCE_X;
+  P_SOURCE_Y = B_MAT*P_SOURCE_Y;
+
+  Eigen::SparseMatrix<double> I_MAT_X = (alg::sparseIdentity() - dt*B_MAT*E_MAT);
+  Eigen::SparseMatrix<double> I_MAT_Y = (alg::sparseIdentity() - dt*B_MAT*E_MAT);
+
+  //All Elements!
+  Eigen::VectorXd UA_X = E.cwiseQuotient(I_MAT_X*E);
+  Eigen::VectorXd UA_Y = E.cwiseQuotient(I_MAT_Y*E);
+
+  //Implicit Solution
+  PDE::integrate<PDE::IE>(dt, vX, E_MAT, P_SOURCE_X);
+  PDE::integrate<PDE::IE>(dt, vY, E_MAT, P_SOURCE_Y);
+  PDE::integrate<PDE::EE>(dt, P, E_MAT);  //Guess the Pressure?
 
   Eigen::VectorXd vXG;
   Eigen::VectorXd vYG;
@@ -115,40 +126,51 @@ void Field::timestep(){
     Fix the pressure and velocity guesses.
   */
 
-  //PDE::solveNavierStokes<PDE::SIMPLEC>(vX, vY, P, B_MAT, GXF, GXB, GYF, GYB, 1E-4, 100, 0.3, 0.9);
-
   Eigen::VectorXd dP;
   Eigen::VectorXd dvX;
   Eigen::VectorXd dvY;
 
   double newerr = 1.0;
   double pCorr = 1.0;
-  int maxiter = 10000;
+  int maxiter = 50;
   int n = 0;
 
-  while(newerr > 1E-4 && pCorr > 1E-4 && !divergence && maxiter){
+  while( /* newerr > 1E-4 || */ pCorr > 1E-6 && !divergence && maxiter){
     n++;
 
     vX_MAT = alg::sparseDiagonalize(vX);
     vY_MAT = alg::sparseDiagonalize(vY);
     E_MAT = -vX_MAT*XFLUX - vY_MAT*YFLUX + viscosity*(XDIFFUSION + YDIFFUSION);
+    E_MAT = B_MAT*E_MAT;
 
     //Compute the Intermediary Values
-    P_SOURCE_X = g.x*Eigen::ArrayXd::Ones(SIZE*SIZE);
-    P_SOURCE_Y = g.y*Eigen::ArrayXd::Ones(SIZE*SIZE);
-    P_SOURCE_X += -XFLUX*P;
-    P_SOURCE_Y += -YFLUX*P;
-    vXG = vX + dt*B_MAT*(E_MAT*vX + P_SOURCE_X);
-    vYG = vY + dt*B_MAT*(E_MAT*vY + P_SOURCE_Y);
+    P_SOURCE_X = g.x*E -XFLUX*P;
+    P_SOURCE_Y = g.y*E -YFLUX*P;
+    P_SOURCE_X = B_MAT*P_SOURCE_X;
+    P_SOURCE_Y = B_MAT*P_SOURCE_Y;
+
+    I_MAT_X = (alg::sparseIdentity() - dt*B_MAT*E_MAT);
+    I_MAT_Y = (alg::sparseIdentity() - dt*B_MAT*E_MAT);
+    UA_X = E.cwiseQuotient(I_MAT_X*E);
+    UA_Y = E.cwiseQuotient(I_MAT_Y*E);
 
     //Pressure Correction
+    solver.compute(I_MAT_X);
+    vXG.noalias() = solver.solve(vX+dt*B_MAT*P_SOURCE_X);
+    solver.compute(I_MAT_Y);
+    vYG.noalias() = solver.solve(vY+dt*B_MAT*P_SOURCE_Y);
 
+    //vXG = vX + dt*B_MAT*(E_MAT*vX + P_SOURCE_X);
+    //vYG = vY + dt*B_MAT*(E_MAT*vY + P_SOURCE_Y);
+
+    //Pressure Correction
+    solver.compute((GXF*alg::sparseDiagonalize(UA_X)*GXB + GYF*alg::sparseDiagonalize(UA_Y)*GYB)); //2D Laplace Operator
     dP = solver.solve((GXB*vXG + GYB*vYG));
 
     // We compute the velocity correction based on the pressure correction
 
-    dvX = -(GXF*dP);
-    dvY = -(GYF*dP);
+    dvX = -(GXF*dP).cwiseProduct(UA_X);
+    dvY = -(GYF*dP).cwiseProduct(UA_Y);
 
     // We correct our velocity guesses from the intermediary field
 

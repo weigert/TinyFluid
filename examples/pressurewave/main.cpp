@@ -26,8 +26,8 @@ int main(int argc, char* argv[]){
 
   //Max and Min-Values! (Initial)
   //Pressure Field (Scaled)
-  double min = field.P.minCoeff();
-  double max = field.P.maxCoeff();
+  //double min = field.P.minCoeff();
+  //double max = field.P.maxCoeff();
 
 
   /* Render Loop */

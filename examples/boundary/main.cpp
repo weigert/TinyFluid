@@ -1,6 +1,6 @@
 #include <iostream>
 
-#define SIZE 50
+#define SIZE 100
 
 #include "../../procfluid/procfluid.h"
 #include "boundary.h"
@@ -55,8 +55,8 @@ int main(int argc, char* argv[]){
         view.drawPixel(_pos, color::bezier(P, color::nebula), B);
 
         //Velocity Field
-      //  double V = sqrt(pow(field.vX(i), 2) + pow(field.vY(i), 2))/2.5;
-      //  view.drawPixel(_pos, color::bezier(V, color::nebula), B);
+        //double V = sqrt(pow(field.vX(i), 2) + pow(field.vY(i), 2))/2.5;
+        //view.drawPixel(_pos, color::bezier(V, color::nebula), B);
 
         //Draw the Quiver
         view.drawLine(_pos, glm::vec2(field.vX(i), field.vY(i)));

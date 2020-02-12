@@ -10,5 +10,8 @@ void Input::handle(){
     else if(event.key.keysym.sym == SDLK_t){
       trigger = true;
     }
+    else if(event.key.keysym.sym == SDLK_SPACE){
+      screen = (screen+1)%6;
+    }
   }
 }

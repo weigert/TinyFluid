@@ -5,15 +5,15 @@ public:
   //Grid-Size
   double dx = 1.0/(double)SIZE;
   double dy = 1.0/(double)SIZE;
-  double dt = 0.01;
+  double dt = 0.001;
 
   //Parameters
-  double viscosity = 0.000148;  //[m^2/s]  //Future: Replace with Temperature Dependent?
+  double viscosity = 0.001;  //[m^2/s]  //Future: Replace with Temperature Dependent?
   double density = 1.225;       //[kg/m^3]Future: Replace with Temperature Dependent?
   double P0 = 1E+5;             //Initial Pressure [Pa]
 
   //Volume Force
-  glm::vec2 g = glm::vec2(0.5, 0.5);
+  glm::vec2 g = glm::vec2(0.0, 0.0);
 
   float sealevel = 0.3;
 
@@ -85,10 +85,11 @@ void Field::initialize(){
 
   //Initialize Pressure to some pressures pike in the center...
   P = P0*Eigen::ArrayXd::Ones(SIZE*SIZE);
+  P += 10*(E-B_MAT*E);  //Start with High Pressure Zone?
 
   //Initialize Velocities to Zero
-  vX = 0.5*Eigen::ArrayXd::Ones(SIZE*SIZE);
-  vY = 0.5*Eigen::ArrayXd::Ones(SIZE*SIZE);
+  vX = 0.0*Eigen::ArrayXd::Ones(SIZE*SIZE);
+  vY = 0.0*Eigen::ArrayXd::Ones(SIZE*SIZE);
   vX = B_MAT*vX;
   vY = B_MAT*vY;
 
@@ -100,7 +101,7 @@ void Field::initialize(){
 
   //Discrete Differential Operator (Laplace)
   solver.compute(GXF*GXB + GYF*GYB);
-  solver.setTolerance(0.000001);
+  solver.setTolerance(1E-8);
 
   //Surface Integrators (i.e. convective fluxes over surface)
   XFLUX = space::FV_FLUX(glm::vec2(1, 0))/dx;
@@ -181,10 +182,10 @@ void Field::timestep(){
 
   double newerr = 1.0;
   double pCorr = 1.0;
-  int maxiter = 100;
+  int maxiter = 200;
   int n = 0;
 
-  while(newerr > 1E-4 && pCorr > 1E-4 && !divergence && maxiter){
+  while(newerr > 1E-4 && pCorr > 1E-6 && !divergence && maxiter){
     n++;
 
     vX_MAT = alg::sparseDiagonalize(vX);
@@ -246,81 +247,3 @@ void Field::timestep(){
   //Transport...
 
 }
-
-/*
-void Field::timestep(){
-
-  Eigen::VectorXd E = Eigen::ArrayXd::Ones(SIZE*SIZE);
-
-  //Construct Non-Linear Operator from Velocity Field and Other Contributions
-  Eigen::SparseMatrix<double> vX_MAT = alg::sparseDiagonalize(vX);
-  Eigen::SparseMatrix<double> vY_MAT = alg::sparseDiagonalize(vY);
-
-  //Implicit and Explicitly Evaluated Operators...
-  Eigen::SparseMatrix<double> E_MAT_X = -vX_MAT*XFLUX + viscosity*XDIFFUSION;
-  Eigen::SparseMatrix<double> E_MAT_Y = -vY_MAT*YFLUX + viscosity*YDIFFUSION;
-
-  Eigen::SparseMatrix<double> E_MAT = (E_MAT_X+E_MAT_Y);
-
-  Eigen::SparseMatrix<double> I_MAT_X = 0.0*E_MAT_X;
-  Eigen::SparseMatrix<double> I_MAT_Y = 0.0*E_MAT_Y;
-  Eigen::SparseMatrix<double> I_MAT = 0.0*E_MAT;
-
-  //All Elements! (Summed for Each Individual Guy)
-  Eigen::VectorXd A_X = ((alg::sparseIdentity()-dt*I_MAT_X)*E);
-  Eigen::VectorXd A_Y = ((alg::sparseIdentity()-dt*I_MAT_Y)*E);
-
-  //All Elements!
-  Eigen::VectorXd UA_X = E.cwiseQuotient(A_X);
-  Eigen::VectorXd UA_Y = E.cwiseQuotient(A_Y);
-
-  //Refactorize the Solver Matrix
-  solver.factorize((GXF*alg::sparseDiagonalize(UA_X)*GXB+ GYF*alg::sparseDiagonalize(UA_Y)*GYB)); //2D Laplace Operator
-
-
-  Eigen::VectorXd P_SOURCE_X;
-  Eigen::VectorXd P_SOURCE_Y;
-  P_SOURCE_X = g.x*Eigen::ArrayXd::Ones(SIZE*SIZE);
-  P_SOURCE_Y = g.y*Eigen::ArrayXd::Ones(SIZE*SIZE);
-  P_SOURCE_X += -XFLUX*P;
-  P_SOURCE_Y += -YFLUX*P;
-  vX = vX + dt*B_MAT*(E_MAT*vX + P_SOURCE_X);
-  vY = vY + dt*B_MAT*(E_MAT*vY + P_SOURCE_Y);
-
-  Eigen::VectorXd dP;
-  Eigen::VectorXd dvX;
-  Eigen::VectorXd dvY;
-
-  double newerr = 1.0;
-  int maxiter = 100;
-
-  while(newerr > 1E-4 && !divergence && maxiter){
-
-    //Pressure Correction
-
-    dP = solver.solve((GXB*vX + GYB*vY));
-
-    // We compute the velocity correction based on the pressure correction
-
-    dvX = -(GXF*dP).cwiseProduct(UA_X);
-    dvY = -(GYF*dP).cwiseProduct(UA_Y);
-
-    // We correct our velocity guesses from the intermediary field
-
-    vX += 0.9*B_MAT*dvX;
-    vY += 0.9*B_MAT*dvY;
-
-    // We correct our pressure guess from our previous guess
-
-    P += 0.3*B_MAT*dP;
-
-    // Compute the Error (Divergence of Field) simply using our guess.
-    newerr = (GXB*vX + GYB*vY).squaredNorm()/(SIZE*SIZE);
-    maxiter--;
-
-    if(newerr > err) divergence = true;
-  }
-  if(!maxiter) std::cout<<"Max iterations surpassed."<<std::endl;
-  if(divergence) std::cout<<"Instability encountered."<<std::endl;
-}
-*/

@@ -17,7 +17,8 @@ namespace color{
   };
 
   glm::vec3 red = glm::vec3(1.0, 0.0, 0.0);
-  glm::vec3 white = glm::vec3(1.0, 1.0, 1.0);
+  glm::vec3 white = glm::vec3(1.0);
+  glm::vec3 black = glm::vec3(0.0);
 
   scheme green{
     glm::vec3(0.0, 1.0, 0.0)
@@ -33,8 +34,8 @@ namespace color{
   };
 
   scheme land{
-    glm::vec3(0.53, 0.69, 0.29),
     glm::vec3(0.18, 0.52, 0.34),
+    glm::vec3(0.53, 0.69, 0.29),
     glm::vec3(0.75, 0.62, 0.23)
   };
 

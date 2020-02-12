@@ -1,6 +1,6 @@
 #include <iostream>
 
-#define SIZE 100
+#define SIZE 50
 
 #include "../../procfluid/procfluid.h"
 #include "terrain.h"
@@ -57,12 +57,12 @@ int main(int argc, char* argv[]){
         //double C = field.concentration(i);
         //view.drawPixel(_pos, color::white, C/field.c0);
 
-
+/*
         double min = field.P.minCoeff();
         double max = field.P.maxCoeff();
         double P = (field.P(i) - min)/(max-min);
         view.drawPixel(_pos, color::bezier(P, color::nebula), 0.8);
-
+*/
         //Velocity Field (Opacity Shows Strength)
         //double V = sqrt(pow(field.vX(i), 2) + pow(field.vY(i), 2))/2.5;
         //view.drawPixel(_pos, color::red, V);
