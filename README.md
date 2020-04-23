@@ -1,4 +1,4 @@
-# ProcFluid
+# TinyFluid
 Finite-Volume based Navier-Stokes and general Transport-Equation / Conservation-Law solver
 
 Originally written to solve fluid-dynamics problems to model physical-phenomena for procedural world generation.
