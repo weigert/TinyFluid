@@ -17,6 +17,7 @@ bool View::setup(){
   //Prepare the Renderer
   gRenderer = SDL_CreateRenderer(gWindow, -1, SDL_RENDERER_ACCELERATED);
   SDL_SetRenderDrawBlendMode(gRenderer, SDL_BLENDMODE_BLEND);
+	SDL_GL_SetSwapInterval(false);
 
   return true;
 }
@@ -39,6 +40,9 @@ void View::cleanup(){
 template<typename F, typename... Args>
 void View::render(F function, Args&&... args){
 	//Clear the Window
+//	std::cout<<"Render ";
+//	timer::benchmark<std::chrono::microseconds>([&](){
+
 	SDL_SetRenderDrawColor(gRenderer, 0, 0, 0, 255);
   SDL_RenderClear(gRenderer);
 
@@ -47,6 +51,8 @@ void View::render(F function, Args&&... args){
 
 	//Present the Information
 	SDL_RenderPresent(gRenderer);
+
+//	});
 }
 
 /*

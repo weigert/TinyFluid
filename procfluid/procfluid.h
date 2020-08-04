@@ -23,8 +23,8 @@ PDE Transport Master File
 #include "src/solve.h"      //Full Scheme Solvers / Algorithms
 #include "src/source.h"     //Physical Source and Sink Terms
 
+#include "helpers/timer.h"    //Benchmarking Tool
+
 // Rendering Stuff
 #include "render/view.cpp"    //Renderer (Requires SDL)
 #include "render/input.cpp"    //Renderer (Requires SDL)
-
-#include "helpers/timer.h"    //Benchmarking Tool

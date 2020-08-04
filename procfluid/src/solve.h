@@ -38,7 +38,7 @@ namespace PDE{
 
     //Discrete Differential Operator (Laplace)
     solver.compute(GXF*GXB + GYF*GYB);
-    solver.setTolerance(0.000001);
+    solver.setTolerance(0.00001);
 
     //Surface Integrators (i.e. convective fluxes over surface)
     XFLUX = space::FV_FLUX(glm::vec2(1, 0))/dx;

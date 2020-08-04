@@ -5,7 +5,7 @@ public:
   //Grid-Size
   double dx = 1.0/(double)SIZE;
   double dy = 1.0/(double)SIZE;
-  double dt = 0.005;
+  double dt = 0.002;
 
   //Parameters
   double viscosity = 0.001;     //[m^2/s]  //Future: Replace with Temperature Dependent?
@@ -33,26 +33,6 @@ public:
 
 void Field::initialize(){
   //Boundary Vector
-  /*
-  boundary = Eigen::ArrayXd::Ones(SIZE*SIZE);
-  boundary -= 0.9*shape::circle(glm::vec2(3.0*SIZE/4.0, SIZE/4.0), SIZE/10.0);
-  boundary -= 0.9*shape::circle(glm::vec2(1.0*SIZE/4.0, SIZE/4.0), SIZE/10.0);
-  boundary -= 0.9*shape::circle(glm::vec2(3.0*SIZE/4.0, 3.0*SIZE/4.0), SIZE/10.0);
-  boundary -= 0.9*shape::circle(glm::vec2(1.0*SIZE/4.0, 3.0*SIZE/4.0), SIZE/10.0);
-
-  boundary -= 0.9*shape::circle(glm::vec2(0.0*SIZE/4.0, 0.0*SIZE/4.0), SIZE/10.0);
-  boundary -= 0.9*shape::circle(glm::vec2(2.0*SIZE/4.0, 0.0*SIZE/4.0), SIZE/10.0);
-  boundary -= 0.9*shape::circle(glm::vec2(4.0*SIZE/4.0, 0.0*SIZE/4.0), SIZE/10.0);
-
-  boundary -= 0.9*shape::circle(glm::vec2(0.0*SIZE/4.0, 2.0*SIZE/4.0), SIZE/10.0);
-  boundary -= 0.9*shape::circle(glm::vec2(2.0*SIZE/4.0, 2.0*SIZE/4.0), SIZE/10.0);
-  boundary -= 0.9*shape::circle(glm::vec2(4.0*SIZE/4.0, 2.0*SIZE/4.0), SIZE/10.0);
-
-  boundary -= 0.9*shape::circle(glm::vec2(0.0*SIZE/4.0, 4.0*SIZE/4.0), SIZE/10.0);
-  boundary -= 0.9*shape::circle(glm::vec2(2.0*SIZE/4.0, 4.0*SIZE/4.0), SIZE/10.0);
-  boundary -= 0.9*shape::circle(glm::vec2(4.0*SIZE/4.0, 4.0*SIZE/4.0), SIZE/10.0);
-  */
-
   boundary = Eigen::ArrayXd::Ones(SIZE*SIZE);
   boundary -= shape::circle(glm::vec2(SIZE/2.0, SIZE/2.0), SIZE/6.0);
   B_MAT = alg::sparseDiagonalize(boundary);
@@ -89,13 +69,10 @@ void Field::timestep(){
   //Construct Non-Linear Operator from Velocity Field and Other Contributions
   Eigen::SparseMatrix<double> vX_MAT = alg::sparseDiagonalize(vX);
   Eigen::SparseMatrix<double> vY_MAT = alg::sparseDiagonalize(vY);
-  Eigen::SparseMatrix<double> E_MAT = -vX_MAT*PDE::XFLUX - vY_MAT*PDE::YFLUX + viscosity*(PDE::XDIFFUSION + PDE::YDIFFUSION);
-  E_MAT = B_MAT*E_MAT;
+  Eigen::SparseMatrix<double> E_MAT = B_MAT*(-vX_MAT*PDE::XFLUX - vY_MAT*PDE::YFLUX + viscosity*(PDE::XDIFFUSION + PDE::YDIFFUSION));
 
-  Eigen::VectorXd P_SOURCE_X = g.x*E - PDE::XFLUX*P;
-  Eigen::VectorXd P_SOURCE_Y = g.y*E - PDE::YFLUX*P;
-  P_SOURCE_X = B_MAT*P_SOURCE_X;
-  P_SOURCE_Y = B_MAT*P_SOURCE_Y;
+  Eigen::VectorXd P_SOURCE_X = (g.x*E - PDE::XFLUX*P).cwiseProduct(boundary);
+  Eigen::VectorXd P_SOURCE_Y = (g.y*E - PDE::YFLUX*P).cwiseProduct(boundary);
 
   //Implicit Solution
   Eigen::SparseMatrix<double> I_MAT_X = (alg::sparseIdentity() - dt*E_MAT);
@@ -119,7 +96,7 @@ void Field::timestep(){
 
   double newerr = 1.0;
   double pCorr = 1.0;
-  int maxiter = 100;
+  int maxiter = 500;
   int n = 0;
 
   while( (newerr > 1E-4 && pCorr > 1E-6) && !divergence && maxiter){
@@ -127,14 +104,11 @@ void Field::timestep(){
 
     vX_MAT = alg::sparseDiagonalize(vX);
     vY_MAT = alg::sparseDiagonalize(vY);
-    E_MAT = -vX_MAT*PDE::XFLUX - vY_MAT*PDE::YFLUX + viscosity*(PDE::XDIFFUSION + PDE::YDIFFUSION);
-    E_MAT = B_MAT*E_MAT;
+    E_MAT = B_MAT*(-vX_MAT*PDE::XFLUX - vY_MAT*PDE::YFLUX + viscosity*(PDE::XDIFFUSION + PDE::YDIFFUSION));
 
     //Compute the Intermediary Values
-    P_SOURCE_X = g.x*E - PDE::XFLUX*P;
-    P_SOURCE_Y = g.y*E - PDE::YFLUX*P;
-    P_SOURCE_X = B_MAT*P_SOURCE_X;
-    P_SOURCE_Y = B_MAT*P_SOURCE_Y;
+    P_SOURCE_X = (g.x*E - PDE::XFLUX*P).cwiseProduct(boundary);
+    P_SOURCE_Y = (g.y*E - PDE::YFLUX*P).cwiseProduct(boundary);
 
     //E_MAT is updated already...
     I_MAT_X = (alg::sparseIdentity() - dt*E_MAT);
@@ -159,11 +133,11 @@ void Field::timestep(){
 
     // We correct our velocity guesses from the intermediary field
 
-    vX = vXG + 0.9*B_MAT*dvX;
-    vY = vYG + 0.9*B_MAT*dvY;
+    vX = vXG + 0.8*dvX.cwiseProduct(boundary);
+    vY = vYG + 0.8*dvY.cwiseProduct(boundary);
 
     // We correct our pressure guess from our previous guess
-    P += B_MAT*dP;
+    P += dP.cwiseProduct(boundary);
 
     // Compute the Error (Divergence of Field) simply using our guess.
     newerr = (PDE::GXB*vXG + PDE::GYB*vYG + dvY + dvX).squaredNorm()/(SIZE*SIZE);

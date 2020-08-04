@@ -19,21 +19,26 @@ int main(int argc, char* argv[]){
   Input input;
 
   /* Initialize topography to some height-map */
-  srand(time(NULL));
-  field.SEED = rand()%10000;
+//  srand(time(NULL));
+  field.SEED = 100;//rand()%10000;
   field.initialize();
 
   /* Render Loop */
-  while(!input.quit){
+  bool exit = false;
+  while(!input.quit && !exit){
+
+
     //Check for Quit
     while( SDL_PollEvent( &input.event ) != 0 ) input.handle();
-    if(input.quit) break;
+    if(input.quit) exit = true;
+
+    timer::benchmark<std::chrono::microseconds>([&](){
 
     if(!input.paused){
-      timer::benchmark<std::chrono::microseconds>([&](){
         field.timestep();
-      });
     }
+
+    });
 
     if(input.trigger){
       field.g = glm::vec2(0.0, 0.0);
@@ -41,11 +46,14 @@ int main(int argc, char* argv[]){
       std::cout<<"Triggered"<<std::endl;
     }
 
+    Eigen::VectorXd clouds;
+    Eigen::VectorXd clouds2;
+
     //Drawing Logic
     view.render([&](){
 
-      Eigen::VectorXd clouds = source::CLOUD(field.humidity, field.P, field.temperature, 100.0);
-      Eigen::VectorXd clouds2 = source::CLOUD(field.humidity, field.P, field.temperature, 150.0);
+      clouds = source::CLOUD(field.humidity, field.P, field.temperature, 100.0);
+      clouds2 = source::CLOUD(field.humidity, field.P, field.temperature, 150.0);
 
       //Do this for all squares!
       for(int i = 0; i < SIZE*SIZE; i++){
@@ -59,6 +67,7 @@ int main(int argc, char* argv[]){
         if(input.screen == 1){
           double min = field.temperature.minCoeff();
           double max = field.temperature.maxCoeff();
+          std::cout<<"MIN: "<<min<<" MAX: "<<max<<std::endl;
           double T = (field.temperature(i)-min)/(max-min);
           view.drawPixel(_pos, color::red, T);
         }
@@ -87,6 +96,7 @@ int main(int argc, char* argv[]){
         view.drawLine(_pos, glm::vec2(field.vX(i), field.vY(i)));
       }
 		});
+
   }
 
   //Finished!

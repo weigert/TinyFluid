@@ -33,12 +33,18 @@ int main(int argc, char* argv[]){
     if(input.quit) break;
 
     if(!input.paused){
+      std::cout<<"Simulation ";
       timer::benchmark<std::chrono::microseconds>([&](){
-        field.timestep();
+        for(int i = 0; i < 50; i++){
+          field.timestep();
+        }
       });
     }
 
     //Drawing Logic
+    std::cout<<"Render ";
+    timer::benchmark<std::chrono::microseconds>([&](){
+
     view.render([&](){
 
       //Do this for all squares!
@@ -54,14 +60,12 @@ int main(int argc, char* argv[]){
         double P = (field.P(i) - min)/(max-min);
         view.drawPixel(_pos, color::bezier(P, color::nebula), B);
 
-        //Velocity Field
-        //double V = sqrt(pow(field.vX(i), 2) + pow(field.vY(i), 2))/2.5;
-        //view.drawPixel(_pos, color::bezier(V, color::nebula), B);
-
         //Draw the Quiver
         view.drawLine(_pos, glm::vec2(field.vX(i), field.vY(i)));
       }
 		});
+
+    });
   }
 
   //Finished!

@@ -62,4 +62,12 @@ namespace alg{
     return I;
   }
 
+  void sparseDiagonalize(Eigen::VectorXd& vec, Eigen::SparseMatrix<double>& vmat){
+    std::vector<triplet> list;
+    for(int i = 0; i < SIZE*SIZE; i++){
+      list.push_back(triplet(i, i, vec(i)));
+    }
+    vmat.setFromTriplets(list.begin(), list.end());
+  }
+
 }

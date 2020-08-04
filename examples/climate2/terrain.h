@@ -5,7 +5,7 @@ public:
   //Grid-Size
   double dx = 1.0/(double)SIZE;
   double dy = 1.0/(double)SIZE;
-  double dt = 0.01;
+  double dt = 0.02;
 
   //Parameters
   double viscosity = 0.001;    //[m^2/s]  //Future: Replace with Temperature Dependent?
@@ -112,57 +112,82 @@ void Field::initialize(){
   PDE::initialize(dx, dy);
 }
 
+bool turned = false;
+
+Eigen::VectorXd E = Eigen::ArrayXd::Ones(SIZE*SIZE);
+Eigen::SparseMatrix<double> E_MAT;
+Eigen::SparseMatrix<double> P_MAT;
+
+Eigen::VectorXd P_SOURCE_X;
+Eigen::VectorXd P_SOURCE_Y;
+
+Eigen::VectorXd vXG;
+Eigen::VectorXd vYG;
+
+Eigen::VectorXd dP;
+Eigen::VectorXd dvX;
+Eigen::VectorXd dvY;
+
+Eigen::VectorXd A_X;
+Eigen::VectorXd A_Y;
+
+Eigen::VectorXd UA_X;
+Eigen::VectorXd UA_Y;
+
+Eigen::SparseMatrix<double> TRANSPORTMAT_H;
+Eigen::SparseMatrix<double> TRANSPORTMAT_T;
+
+Eigen::SparseMatrix<double> I_MAT_X;
+Eigen::SparseMatrix<double> I_MAT_Y;
+
+Eigen::VectorXd HSOURCE;
+Eigen::VectorXd TSOURCE;
+
 void Field::timestep(){
   count++;
-  int time = 365;
-  if(count > time/2) v0 = glm::vec2(1.0, -1.0); //Wind Shifts
-  else v0 = glm::vec2(1.0, 1.0);
-  if(count > time) count = 0;
-
-  Eigen::VectorXd E = Eigen::ArrayXd::Ones(SIZE*SIZE);
+  int time = 1000;
+  if(count > time/2 && !turned) { //Everytime we are half way through a cycle...
+    v0 = glm::vec2(-v0.y, v0.x); //Wind Shifts by 90 Degrees!
+    turned = true;
+  }
+  if(count > time){
+    turned = false;
+    count = 0;
+  }
 
   //Construct Non-Linear Operator from Velocity Field and Other Contributions
-  Eigen::SparseMatrix<double> vX_MAT = alg::sparseDiagonalize(vX);
-  Eigen::SparseMatrix<double> vY_MAT = alg::sparseDiagonalize(vY);
-  Eigen::SparseMatrix<double> E_MAT = -vX_MAT*PDE::XFLUX - vY_MAT*PDE::YFLUX + viscosity*(PDE::XDIFFUSION + PDE::YDIFFUSION);
+  E_MAT = -1.0*(vX.asDiagonal()*PDE::XFLUX + vY.asDiagonal()*PDE::YFLUX) + viscosity*(PDE::XDIFFUSION + PDE::YDIFFUSION);
   E_MAT = B_MAT*E_MAT;
-  Eigen::SparseMatrix<double> P_MAT = -PDE::XFLUX -PDE::YFLUX;
+  P_MAT = -PDE::XFLUX -PDE::YFLUX;
   P_MAT = B_MAT*P_MAT;
 
-  Eigen::VectorXd P_SOURCE_X = g.x*V_MAT*(E*v0.x-vX) - PDE::XFLUX*P;
-  Eigen::VectorXd P_SOURCE_Y = g.y*V_MAT*(E*v0.y-vY) - PDE::YFLUX*P;
+  P_SOURCE_X = g.x*V_MAT*(E*v0.x-vX) - PDE::XFLUX*P;
+  P_SOURCE_Y = g.y*V_MAT*(E*v0.y-vY) - PDE::YFLUX*P;
   P_SOURCE_X = B_MAT*P_SOURCE_X;
   P_SOURCE_Y = B_MAT*P_SOURCE_Y;
 
   //Implicit Solution
-  Eigen::SparseMatrix<double> I_MAT_X = (alg::sparseIdentity() - dt*E_MAT);
-  Eigen::SparseMatrix<double> I_MAT_Y = (alg::sparseIdentity() - dt*E_MAT);
+  I_MAT_X = (alg::sparseIdentity() - dt*E_MAT);
+  I_MAT_Y = (alg::sparseIdentity() - dt*E_MAT);
 
   //Helper Values (Sum over Rows)
-  Eigen::VectorXd A_X = I_MAT_X*E;
-  Eigen::VectorXd A_Y = I_MAT_Y*E;
+  A_X = I_MAT_X*E;
+  A_Y = I_MAT_Y*E;
 
   //All Elements!
-  Eigen::VectorXd UA_X = E.cwiseQuotient(A_X);
-  Eigen::VectorXd UA_Y = E.cwiseQuotient(A_Y);
+  UA_X = E.cwiseQuotient(A_X);
+  UA_Y = E.cwiseQuotient(A_Y);
 
   //Implicit Solution
   PDE::integrate<PDE::CN>(dt, vX, E_MAT, P_SOURCE_X);
   PDE::integrate<PDE::CN>(dt, vY, E_MAT, P_SOURCE_Y);
 
-  Eigen::SparseMatrix<double> TRANSPORTMAT_H = H_MAT*(-vX_MAT*PDE::XFLUX - vY_MAT*PDE::YFLUX + diffusivity*(PDE::XDIFFUSION + PDE::YDIFFUSION));
-  Eigen::SparseMatrix<double> TRANSPORTMAT_T = H_MAT*(-vX_MAT*PDE::XFLUX - vY_MAT*PDE::YFLUX + conductivity*(PDE::XDIFFUSION + PDE::YDIFFUSION));
-  Eigen::VectorXd HSOURCE = source::HSOURCE(boundary, height, sealevel, humidity, P, temperature);
-  Eigen::VectorXd TSOURCE = source::TSOURCE(boundary, height, sealevel, humidity, P, temperature, vX_MAT, vY_MAT);
-  PDE::integrate<PDE::CN>(dt, humidity, TRANSPORTMAT_H, HSOURCE);
-  PDE::integrate<PDE::CN>(dt, temperature, TRANSPORTMAT_T, TSOURCE);
-
-  Eigen::VectorXd vXG;
-  Eigen::VectorXd vYG;
-
-  Eigen::VectorXd dP;
-  Eigen::VectorXd dvX;
-  Eigen::VectorXd dvY;
+//  TRANSPORTMAT_H = H_MAT*(-1.0*(vX.asDiagonal()*PDE::XFLUX + vY.asDiagonal()*PDE::YFLUX) + diffusivity*(PDE::XDIFFUSION + PDE::YDIFFUSION));
+//  TRANSPORTMAT_T = H_MAT*(-1.0*(vX.asDiagonal()*PDE::XFLUX + vY.asDiagonal()*PDE::YFLUX) + conductivity*(PDE::XDIFFUSION + PDE::YDIFFUSION));
+//  HSOURCE = source::HSOURCE(boundary, height, sealevel, humidity, P, temperature);
+//  TSOURCE = source::TSOURCE(boundary, height, sealevel, humidity, P, temperature, vX, vY);
+//  PDE::integrate<PDE::CN>(dt, humidity, TRANSPORTMAT_H, HSOURCE);
+//  PDE::integrate<PDE::CN>(dt, temperature, TRANSPORTMAT_T, TSOURCE);
 
   double newerr = 1.0;
   double pCorr = 1.0;
@@ -172,9 +197,7 @@ void Field::timestep(){
   while(newerr > 1E-4 && pCorr > 1E-6 && !divergence && maxiter){
     n++;
 
-    vX_MAT = alg::sparseDiagonalize(vX);
-    vY_MAT = alg::sparseDiagonalize(vY);
-    E_MAT = -vX_MAT*PDE::XFLUX - vY_MAT*PDE::YFLUX + viscosity*(PDE::XDIFFUSION + PDE::YDIFFUSION);
+    E_MAT = -1.0*(vX.asDiagonal()*PDE::XFLUX + vY.asDiagonal()*PDE::YFLUX) + viscosity*(PDE::XDIFFUSION + PDE::YDIFFUSION);
     E_MAT = B_MAT*E_MAT;
 
     //Compute the Intermediary Values
@@ -222,12 +245,12 @@ void Field::timestep(){
     if(newerr > err) divergence = true;
     maxiter--;
 
-    TRANSPORTMAT_H = H_MAT*(-vX_MAT*PDE::XFLUX - vY_MAT*PDE::YFLUX + diffusivity*(PDE::XDIFFUSION + PDE::YDIFFUSION));
-    TRANSPORTMAT_T = H_MAT*(-vX_MAT*PDE::XFLUX - vY_MAT*PDE::YFLUX + conductivity*(PDE::XDIFFUSION + PDE::YDIFFUSION));
-    HSOURCE = source::HSOURCE(boundary, height, sealevel, humidity, P, temperature);
-    TSOURCE = source::TSOURCE(boundary, height, sealevel, humidity, P, temperature, vX_MAT, vY_MAT);
-    PDE::integrate<PDE::CN>(dt, humidity, TRANSPORTMAT_H, HSOURCE);
-    PDE::integrate<PDE::CN>(dt, temperature, TRANSPORTMAT_T, TSOURCE);
+  //  TRANSPORTMAT_H = H_MAT*(-1.0*(vX.asDiagonal()*PDE::XFLUX + vY.asDiagonal()*PDE::YFLUX) + diffusivity*(PDE::XDIFFUSION + PDE::YDIFFUSION));
+  //  TRANSPORTMAT_T = H_MAT*(-1.0*(vX.asDiagonal()*PDE::XFLUX + vY.asDiagonal()*PDE::YFLUX) + conductivity*(PDE::XDIFFUSION + PDE::YDIFFUSION));
+  //  HSOURCE = source::HSOURCE(boundary, height, sealevel, humidity, P, temperature);
+  //  TSOURCE = source::TSOURCE(boundary, height, sealevel, humidity, P, temperature, vX, vY);
+  //  PDE::integrate<PDE::CN>(dt, humidity, TRANSPORTMAT_H, HSOURCE);
+  //  PDE::integrate<PDE::CN>(dt, temperature, TRANSPORTMAT_T, TSOURCE);
   }
 
   //Transport...
