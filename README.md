@@ -38,37 +38,28 @@ Note: Make sure to compile with the `-O3` flag so that Eigen is optimized. This 
 
 ### Dependencies
 
-#### ProcFluid Core:
+#### TinyFluid Core:
     - Eigen C++ (Linear Algebra)
     - GLM (Useful small-vector math)
 
-#### Renderer:
-    - SDL2 (Optional)
+#### Renderer (Optional):
+    - SDL2
 
-#### Other
+#### Other (Optional)
     - Timer Helper: pthread
 
 ## To-Do
 
 There are still some issues with the pressure correction laplace equation concerning spurious modes appearing and causing checkerboard patterns. I need to read up again on why exactly there are problems with choosing an FFD + BFD scheme. It's hard to wrap my head around.
 
-
-    - Arbitrary order space FD
-    - Arbitrary order space interpolation
-    - Simple transporter function for a known flow-field
     - Write a Wiki that contains the necessary information on how this works
-        - Time Integration
-        - Space Discretizations
-        - Boundary and Initial Conditions
-        - Example Problem Closer Explanation
-        - Included Source Terms
-        - Renderer Breakdown
-        - Helpers
     - Make the solver capable of handling variable cell volumes and contact areas
     - Make the solver *theoretically* capable of handling 3D systems of cells
 
-    - Write an example for ocean-current computation
-    - Write an example for ground-water flow computation
+## Future Desirable Applications
+
+1. Ocean Currents
+2. Ground Water Flow
 
 ## Sources
 This project was based on information from the book "Computational Methods for Fluid Dynamics" by Ferziger and Peric. Particularly chapter 7 of the latest edition (at the time of writing - January 2020) helped me in implementing the solution of the pressure coupled Navier-Stokes equation.
